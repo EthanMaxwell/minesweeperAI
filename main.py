@@ -46,8 +46,9 @@ def find_grid_location(image):
     grouped_contours_y = group_contours(valid_contours, 'y', 5)
 
     # Get the center locations of valid contours in each column and row
-    x_centers = [sum(cv2.boundingRect(contour)[0] for contour in group) // len(group) for group in grouped_contours_x]
-    y_centers = [sum(cv2.boundingRect(contour)[1] for contour in group) // len(group) for group in grouped_contours_y]
+    x_centers = [sum(cv2.boundingRect(contour)[0] + cv2.boundingRect(contour)[2] / 2 for contour in group) // len(group) for group in grouped_contours_x]
+    y_centers = [sum(cv2.boundingRect(contour)[1] + cv2.boundingRect(contour)[3] / 2 for contour in group) // len(group) for group in grouped_contours_y]
+
 
     return x_centers, y_centers
 
@@ -81,11 +82,12 @@ def main():
         grid_location = find_grid_location(screen)
 
         if grid_location:
-            x, y, w, h = grid_location
-            print(f"Grid found at: X={x}, Y={y}, Width={w}, Height={h}")
-            pyautogui.moveTo(x, y, duration=1)
-            pyautogui.moveTo(x+w, y+h, duration=1)
-            time.sleep(a)
+            x_grid, y_grid = grid_location
+            for x in x_grid:
+                for y in y_grid:
+                    pyautogui.moveTo(x, y, duration=0.1)
+                    pyautogui.click()
+            time.sleep(5)
         else:
             print("Grid not found.")
 
