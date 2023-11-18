@@ -95,27 +95,95 @@ def get_color_category(color):
     # Define color ranges for categories
     cover_range = ((120, 211, 253), (127, 217, 255))
     blank_range = ((253, 253, 253), (255, 255, 255))
-    one_range = ((15, 170, 206), (30, 190, 220))
+    one_range = ((15, 150, 180), (30, 190, 220))
     two_range = ((190, 200, 140), (254, 254, 254))
     three_range = ((210, 20, 90), (240, 90, 150))
 
     # Check the color against predefined ranges
     if is_in_range(color, cover_range):
-        return 'cover'
+        return 'c'
     elif is_in_range(color, blank_range):
-        return 'blank'
+        return 0
     elif is_in_range(color, one_range):
-        return 'one'
+        return 1
     elif is_in_range(color, two_range):
-        return 'two'
+        return 2
     elif is_in_range(color, three_range):
-        return 'three'
+        return 3
     else:
-        return 'Unknown'
+        return 2
 
 def is_in_range(color, color_range):
     # Check if the color is in the specified range
     return all(color_range[0] <= color) and all(color <= color_range[1])
+
+def start_ai(x_grid, y_grid, squares):
+    cols = len(x_grid)
+    rows = len(y_grid)
+    board_state = [[-1 for _ in range(cols)] for _ in range(rows)]
+
+    # Make current board state data
+    for row in range(rows):
+        for col in range(cols):
+            if squares[row][col] == "c":
+                board_state[row][col] = -1
+            else:
+                board_state[row][col] = squares[row][col]
+
+    # Modify the board state to show mines and free squares
+    run_ai(rows, cols, board_state)
+
+    # Display the free spaces and the mines
+    for row in range(rows):
+        for col in range(cols):
+            if board_state[row][col] == 9:  
+                # The square is not a mine
+                pyautogui.moveTo(x_grid[col], y_grid[row])
+                pyautogui.click()
+            elif board_state[row][col] == 10:  # The square is a mine
+                # The square is a mine
+                pass
+
+def run_ai(cols, rows, board_state):
+    changed = False  # Record if any values in the array were changed
+    for row in range(rows):
+        for col in range(cols):
+            # If it's a numbers square check it for relevant info
+            if 1 <= board_state[row][col] <= 8:
+                pot_mine_num = 0  # The number of mine or unknowns around the square
+                mine_num = 0  # The number of mine around the square
+
+                # Check the squares around the square to find the above two values
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        if (
+                            0 <= row + i < rows
+                            and 0 <= col + j < cols
+                        ):
+                            if board_state[row + i][col + j] == -1:  # Unknown square found
+                                pot_mine_num += 1
+                            elif board_state[row + i][col + j] == 10:  # Mine found
+                                mine_num += 1
+                                pot_mine_num += 1
+
+                # Check if the square's value is the same as the total potential mines or the total known mines
+                if pot_mine_num == board_state[row][col] or mine_num == board_state[row][col]:
+                    # Find all unknown squares around the square and change them accordingly
+                    for i in range(-1, 2):
+                        for j in range(-1, 2):
+                            if (
+                                0 <= row + i < rows
+                                and 0 <= col + j < cols
+                                and board_state[row + i][col + j] == -1
+                            ):
+                                if pot_mine_num == board_state[row][col]:  # The square is a mine
+                                    board_state[row + i][col + j] = 10
+                                else:  # the square is not a mine
+                                    board_state[row + i][col + j] = 9
+                                changed = True  # Record that the board state changed
+    if changed:  # If the board state changed run this check again
+        run_ai(rows, cols, board_state)
+
 
     
 def main():
@@ -128,12 +196,16 @@ def main():
     # Find the grid location
     x_grid, y_grid = find_grid_location(screen)
 
-    pyautogui.moveTo(x_grid[2], y_grid[2])
+    pyautogui.moveTo(x_grid[2], y_grid[2], 0.5)
     pyautogui.click()
-    time.sleep(1)
-    screen = np.array(pyautogui.screenshot())
+    
+    while True:
+        screen = np.array(pyautogui.screenshot())
 
-    read_board(x_grid, y_grid, screen)
+        board = read_board(x_grid, y_grid, screen)
+
+        start_ai(x_grid, y_grid, board)
+
 
 if __name__ == "__main__":
     main()
