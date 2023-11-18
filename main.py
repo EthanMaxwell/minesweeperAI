@@ -4,15 +4,12 @@ import pyautogui
 import time
 
 def find_grid_location(image):
-    # Convert the image to the HSV color space
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
     # Define the lower and upper bounds for the blue color
-    lower_blue = np.array([102, 149, 248])
+    lower_blue = np.array([102, 149, 247])
     upper_blue = np.array([104, 158, 255])
 
     # Create a binary mask for the blue color
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    mask = cv2.inRange(image, lower_blue, upper_blue)
 
     # Find contours in the binary mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -46,8 +43,8 @@ def find_grid_location(image):
     grouped_contours_y = group_contours(valid_contours, 'y', 5)
 
     # Get the center locations of valid contours in each column and row
-    x_centers = [sum(cv2.boundingRect(contour)[0] + cv2.boundingRect(contour)[2] / 2 for contour in group) // len(group) for group in grouped_contours_x]
-    y_centers = [sum(cv2.boundingRect(contour)[1] + cv2.boundingRect(contour)[3] / 2 for contour in group) // len(group) for group in grouped_contours_y]
+    x_centers = [(int)(sum(cv2.boundingRect(contour)[0] + cv2.boundingRect(contour)[2] / 2 for contour in group)) // len(group) for group in grouped_contours_x]
+    y_centers = [(int)(sum(cv2.boundingRect(contour)[1] + cv2.boundingRect(contour)[3] / 2 for contour in group)) // len(group) for group in grouped_contours_y]
 
 
     return x_centers, y_centers
@@ -69,27 +66,74 @@ def group_contours(contours, axis, threshold):
 
     grouped_contours.append(current_group)
     return grouped_contours
+
+def read_board(x_centers, y_centers, image):
+    color_grid = []
+
+    for y in y_centers:
+        row = []
+
+        for x in x_centers:
+            # Ensure x and y are integers
+            x, y = int(x), int(y)
+
+            # Extract color at the center pixel
+            color = image[y, x]
+
+            # Determine the color category
+            category = get_color_category(color)
+
+            # Append the category to the row
+            row.append(category)
+
+        # Append the row to the color grid
+        color_grid.append(row)
+
+    return color_grid
+
+def get_color_category(color):
+    # Define color ranges for categories
+    cover_range = ((120, 211, 253), (127, 217, 255))
+    blank_range = ((253, 253, 253), (255, 255, 255))
+    one_range = ((15, 170, 206), (30, 190, 220))
+    two_range = ((190, 200, 140), (254, 254, 254))
+    three_range = ((210, 20, 90), (240, 90, 150))
+
+    # Check the color against predefined ranges
+    if is_in_range(color, cover_range):
+        return 'cover'
+    elif is_in_range(color, blank_range):
+        return 'blank'
+    elif is_in_range(color, one_range):
+        return 'one'
+    elif is_in_range(color, two_range):
+        return 'two'
+    elif is_in_range(color, three_range):
+        return 'three'
+    else:
+        return 'Unknown'
+
+def is_in_range(color, color_range):
+    # Check if the color is in the specified range
+    return all(color_range[0] <= color) and all(color <= color_range[1])
+
     
 def main():
-    while True:
-        # Capture the screen using pyautogui
-        screen = np.array(pyautogui.screenshot())
+    # Capture the screen using pyautogui
+    screen = np.array(pyautogui.screenshot())
 
-        # Convert the image from BGR to RGB (OpenCV uses BGR)
-        screen = cv2.cvtColor(screen, cv2.COLOR_RGB2BGR)
+    # Convert the image from BGR to RGB (OpenCV uses BGR)
+    screen = cv2.cvtColor(screen, cv2.COLOR_RGB2HSV)
 
-        # Find the grid location
-        grid_location = find_grid_location(screen)
+    # Find the grid location
+    x_grid, y_grid = find_grid_location(screen)
 
-        if grid_location:
-            x_grid, y_grid = grid_location
-            for x in x_grid:
-                for y in y_grid:
-                    pyautogui.moveTo(x, y, duration=0.1)
-                    pyautogui.click()
-            time.sleep(5)
-        else:
-            print("Grid not found.")
+    pyautogui.moveTo(x_grid[2], y_grid[2])
+    pyautogui.click()
+    time.sleep(1)
+    screen = np.array(pyautogui.screenshot())
+
+    read_board(x_grid, y_grid, screen)
 
 if __name__ == "__main__":
     main()
