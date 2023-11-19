@@ -5,8 +5,8 @@ import time
 
 def find_grid_location(image):
     # Define the lower and upper bounds for the blue color
-    lower_blue = np.array([102, 149, 247])
-    upper_blue = np.array([104, 158, 255])
+    lower_blue = np.array([100, 148, 246])
+    upper_blue = np.array([107, 160, 255])
 
     # Create a binary mask for the blue color
     mask = cv2.inRange(image, lower_blue, upper_blue)
@@ -19,7 +19,7 @@ def find_grid_location(image):
 
     if len(contours) > 0:
         # Calculate the median contour
-        median_contour = sorted(contours, key=cv2.contourArea)[len(contours) // 2]
+        median_contour = sorted(contours, key=cv2.contourArea)[-50]
 
         for contour in contours:
             # Calculate the absolute difference in area and shape between the current contour and the median contour
@@ -103,7 +103,7 @@ def get_color_category(color):
     if is_in_range(color, cover_range):
         return 'c'
     elif is_in_range(color, blank_range):
-        return 0
+        return "b"
     elif is_in_range(color, one_range):
         return 1
     elif is_in_range(color, two_range):
@@ -117,30 +117,21 @@ def is_in_range(color, color_range):
     # Check if the color is in the specified range
     return all(color_range[0] <= color) and all(color <= color_range[1])
 
-def start_ai(x_grid, y_grid, squares):
+def start_ai(x_grid, y_grid, board_state):
     cols = len(x_grid)
     rows = len(y_grid)
-    board_state = [[-1 for _ in range(cols)] for _ in range(rows)]
-
-    # Make current board state data
-    for row in range(rows):
-        for col in range(cols):
-            if squares[row][col] == "c":
-                board_state[row][col] = -1
-            else:
-                board_state[row][col] = squares[row][col]
 
     # Modify the board state to show mines and free squares
-    run_ai(rows, cols, board_state)
+    swept_board = run_ai(rows, cols, board_state)
 
     # Display the free spaces and the mines
     for row in range(rows):
         for col in range(cols):
-            if board_state[row][col] == 9:  
+            if swept_board[row][col] == "s":  
                 # The square is not a mine
                 pyautogui.moveTo(x_grid[col], y_grid[row])
                 pyautogui.click()
-            elif board_state[row][col] == 10:  # The square is a mine
+            elif swept_board[row][col] == "m":  # The square is a mine
                 # The square is a mine
                 pass
 
@@ -149,20 +140,17 @@ def run_ai(cols, rows, board_state):
     for row in range(rows):
         for col in range(cols):
             # If it's a numbers square check it for relevant info
-            if 1 <= board_state[row][col] <= 8:
+            if isinstance(board_state[row][col], int):
                 pot_mine_num = 0  # The number of mine or unknowns around the square
                 mine_num = 0  # The number of mine around the square
 
                 # Check the squares around the square to find the above two values
                 for i in range(-1, 2):
                     for j in range(-1, 2):
-                        if (
-                            0 <= row + i < rows
-                            and 0 <= col + j < cols
-                        ):
-                            if board_state[row + i][col + j] == -1:  # Unknown square found
+                        if (0 <= row + i < rows and 0 <= col + j < cols):
+                            if board_state[row + i][col + j] == "c":  # Unknown square found
                                 pot_mine_num += 1
-                            elif board_state[row + i][col + j] == 10:  # Mine found
+                            elif board_state[row + i][col + j] == "m":  # Mine found
                                 mine_num += 1
                                 pot_mine_num += 1
 
@@ -172,17 +160,17 @@ def run_ai(cols, rows, board_state):
                     for i in range(-1, 2):
                         for j in range(-1, 2):
                             if (
-                                0 <= row + i < rows
-                                and 0 <= col + j < cols
-                                and board_state[row + i][col + j] == -1
+                                0 <= row + i < rows and 0 <= col + j < cols
+                                and board_state[row + i][col + j] == 'c'
                             ):
                                 if pot_mine_num == board_state[row][col]:  # The square is a mine
-                                    board_state[row + i][col + j] = 10
+                                    board_state[row + i][col + j] = "m"
                                 else:  # the square is not a mine
-                                    board_state[row + i][col + j] = 9
+                                    board_state[row + i][col + j] = "s"
                                 changed = True  # Record that the board state changed
     if changed:  # If the board state changed run this check again
-        run_ai(rows, cols, board_state)
+        return run_ai(rows, cols, board_state)
+    return board_state
 
 
     
