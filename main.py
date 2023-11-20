@@ -70,18 +70,31 @@ def group_contours(contours, axis, threshold):
 def read_board(x_centers, y_centers, image):
     color_grid = []
 
+    line_len = (int) ((y_centers[-1] - y_centers[0]) / (len(y_centers) - 1) / 5)
+
     for y in y_centers:
         row = []
 
         for x in x_centers:
-            # Ensure x and y are integers
-            x, y = int(x), int(y)
+            # Calculate the coordinates for the line above and below the center pixel
+            y_top = int(y - line_len)
+            y_bottom = int(y + line_len)
 
-            # Extract color at the center pixel
-            color = image[y, x]
+            # Extract colors along the vertical line
+            colors = image[y_top:y_bottom, x]
+
+            # Exclude white pixels from the averaging process
+            non_white_colors = [color for color in colors if not all(color >= 250)]
+
+            if non_white_colors:
+                # Average the non-white colors
+                avg_color = np.mean(non_white_colors, axis=0)
+            else:
+                # Set the average color to white if all colors are white
+                avg_color = np.array([255, 255, 255], dtype=np.uint8)
 
             # Determine the color category
-            category = get_color_category(color)
+            category = get_color_category(avg_color)
 
             # Append the category to the row
             row.append(category)
@@ -93,11 +106,11 @@ def read_board(x_centers, y_centers, image):
 
 def get_color_category(color):
     # Define color ranges for categories
-    cover_range = ((120, 211, 253), (127, 217, 255))
+    cover_range = ((90, 180, 240), (130, 220, 255))
     blank_range = ((253, 253, 253), (255, 255, 255))
-    one_range = ((15, 150, 180), (30, 190, 220))
-    two_range = ((190, 200, 140), (254, 254, 254))
-    three_range = ((210, 20, 90), (240, 90, 150))
+    one_range = ((20, 170, 200), (40, 200, 230))
+    two_range = ((100, 130, 20), (170, 190, 110))
+    three_range = ((180, 50, 100), (230, 110, 160))
 
     # Check the color against predefined ranges
     if is_in_range(color, cover_range):
@@ -111,7 +124,8 @@ def get_color_category(color):
     elif is_in_range(color, three_range):
         return 3
     else:
-        return 2
+        raise Exception(f"Unknown square {color}")
+
 
 def is_in_range(color, color_range):
     # Check if the color is in the specified range
@@ -135,7 +149,7 @@ def start_ai(x_grid, y_grid, board_state):
                 # The square is a mine
                 pass
 
-def run_ai(cols, rows, board_state):
+def run_ai(rows, cols, board_state):
     changed = False  # Record if any values in the array were changed
     for row in range(rows):
         for col in range(cols):
@@ -185,7 +199,7 @@ def main():
     x_grid, y_grid = find_grid_location(screen)
 
     pyautogui.moveTo(x_grid[2], y_grid[2], 0.5)
-    pyautogui.click()
+    #pyautogui.click()
     
     while True:
         screen = np.array(pyautogui.screenshot())
