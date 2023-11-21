@@ -95,7 +95,6 @@ def read_board(x_centers, y_centers, image):
         # Append the row to the color grid
         color_grid.append(row)
 
-    print(color_grid)
     return color_grid
 
 def get_color_category(color):
@@ -103,7 +102,7 @@ def get_color_category(color):
     cover_range = ((90, 180, 240), (130, 220, 255))
     blank_range = ((240, 240, 240), (255, 255, 255))
     one_range = ((10, 140, 170), (30, 190, 230))
-    two_range = ((70, 100, 0), (100, 130, 40))
+    two_range = ((70, 100, 0), (110, 150, 40))
     three_range = ((120, 10, 50), (190, 40, 90))
     four_range = ((10, 40, 110), (30, 80, 170))
     five_range = ((90, 5, 5), (160, 30, 30))
@@ -202,8 +201,9 @@ def main():
     # Find the grid location
     x_grid, y_grid = find_grid_location(screen)
 
-    pyautogui.moveTo(x_grid[2], y_grid[2], 1)
-    #pyautogui.click()
+    pyautogui.moveTo(x_grid[(int)(len(x_grid)/2)], y_grid[(int)(len(y_grid)/2)])
+    pyautogui.click()
+    pyautogui.click()
     
     while True:
         pyautogui.moveTo((x_grid[-1] - x_grid[-2]) + x_grid[-1] , y_grid[0])
@@ -212,6 +212,7 @@ def main():
         board = read_board(x_grid, y_grid, screen)
 
         start_ai(x_grid, y_grid, board)
+        time.sleep(0.1)
 
 
 if __name__ == "__main__":
