@@ -83,15 +83,8 @@ def read_board(x_centers, y_centers, image):
             # Extract colors along the vertical line
             colors = image[y_top:y_bottom, x]
 
-            # Exclude white pixels from the averaging process
-            non_white_colors = [color for color in colors if not all(color >= 240)]
+            avg_color = np.min(colors, axis=0)
 
-            if non_white_colors:
-                # Average the non-white colors
-                avg_color = np.median(non_white_colors, axis=0)
-            else:
-                # Set the average color to white if all colors are white
-                avg_color = np.array([255, 255, 255], dtype=np.uint8)
 
             # Determine the color category
             category = get_color_category(avg_color)
@@ -102,17 +95,19 @@ def read_board(x_centers, y_centers, image):
         # Append the row to the color grid
         color_grid.append(row)
 
+    print(color_grid)
     return color_grid
 
 def get_color_category(color):
     # Define color ranges for categories
     cover_range = ((90, 180, 240), (130, 220, 255))
-    blank_range = ((253, 253, 253), (255, 255, 255))
-    one_range = ((20, 170, 200), (50, 200, 230))
-    two_range = ((100, 130, 20), (170, 190, 110))
-    three_range = ((198.6, 30, 118), (230, 130, 170))
-    four_range = ((51, 90, 170), (120, 150, 220))
-    five_range = ((160, 40, 40), (198.5, 130, 117))
+    blank_range = ((240, 240, 240), (255, 255, 255))
+    one_range = ((10, 140, 170), (30, 190, 230))
+    two_range = ((70, 100, 0), (100, 130, 40))
+    three_range = ((120, 10, 50), (190, 40, 90))
+    four_range = ((10, 40, 110), (30, 80, 170))
+    five_range = ((90, 5, 5), (160, 30, 30))
+    six_range = ((0, 90, 90), (10, 110, 110))
 
     # Check the color against predefined ranges
     if is_in_range(color, cover_range):
@@ -129,9 +124,11 @@ def get_color_category(color):
         return 4
     elif is_in_range(color, five_range):
         return 5
+    elif is_in_range(color, six_range):
+        return 6
     else:
-        return "?"
-        #raise Exception(f"Unknown square {color}")
+        #return "?"
+        raise Exception(f"Unknown square {color}")
 
 
 def is_in_range(color, color_range):
@@ -205,10 +202,11 @@ def main():
     # Find the grid location
     x_grid, y_grid = find_grid_location(screen)
 
-    pyautogui.moveTo(x_grid[2], y_grid[2], 0.5)
+    pyautogui.moveTo(x_grid[2], y_grid[2], 1)
     #pyautogui.click()
     
     while True:
+        pyautogui.moveTo((x_grid[-1] - x_grid[-2]) + x_grid[-1] , y_grid[0])
         screen = np.array(pyautogui.screenshot())
 
         board = read_board(x_grid, y_grid, screen)
