@@ -5,6 +5,30 @@ array([180.75      ,  89.875     ,  89.625     ])
 array([177.16666667,  83.33333333,  83.66666667])
 array([191.83333333,  42.33333333,  99.83333333])
 
-
 # Median
 array([147.5,  37.5,  37.5])
+array([183.,  51.,  52.])
+
+array([170.,  36.,  37.])
+array([180.,  62.,  60.])
+array([176.,  46.,  46.])
+
+array([182.,  82.,  82.])
+array([192.,  86.,  83.])
+
+array([186.,  59.,  57.])
+array([180.,  62.,  62.])
+array([182.,  60.,  61.])
+
+# Min
+array([119,  18,  19], dtype=uint8)
+array([111,  20,  18], dtype=uint8)
+array([113,  13,  16], dtype=uint8)
+
+array([143,  19,  17], dtype=uint8)
+array([115,  16,  16], dtype=uint8)
+array([146,  16,  18], dtype=uint8)
+
+array([104,  13,   9], dtype=uint8)
+array([111,  13,  11], dtype=uint8)
+array([114,  13,  10], dtype=uint8)

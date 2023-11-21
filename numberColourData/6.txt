@@ -1,0 +1,9 @@
+# Median
+array([ 20., 142., 142.])
+array([ 16., 132., 133.])
+array([ 38., 157., 156.])
+
+# Min
+array([ 0, 97, 99], dtype=uint8)
+array([  0, 101,  99], dtype=uint8)
+array([ 0, 97, 99], dtype=uint8)
