@@ -84,11 +84,11 @@ def read_board(x_centers, y_centers, image):
             colors = image[y_top:y_bottom, x]
 
             # Exclude white pixels from the averaging process
-            non_white_colors = [color for color in colors if not all(color >= 250)]
+            non_white_colors = [color for color in colors if not all(color >= 240)]
 
             if non_white_colors:
                 # Average the non-white colors
-                avg_color = np.mean(non_white_colors, axis=0)
+                avg_color = np.median(non_white_colors, axis=0)
             else:
                 # Set the average color to white if all colors are white
                 avg_color = np.array([255, 255, 255], dtype=np.uint8)
@@ -108,9 +108,11 @@ def get_color_category(color):
     # Define color ranges for categories
     cover_range = ((90, 180, 240), (130, 220, 255))
     blank_range = ((253, 253, 253), (255, 255, 255))
-    one_range = ((20, 170, 200), (40, 200, 230))
+    one_range = ((20, 170, 200), (50, 200, 230))
     two_range = ((100, 130, 20), (170, 190, 110))
-    three_range = ((180, 50, 100), (230, 110, 160))
+    three_range = ((198.6, 30, 118), (230, 130, 170))
+    four_range = ((51, 90, 170), (120, 150, 220))
+    five_range = ((160, 40, 40), (198.5, 130, 117))
 
     # Check the color against predefined ranges
     if is_in_range(color, cover_range):
@@ -123,8 +125,13 @@ def get_color_category(color):
         return 2
     elif is_in_range(color, three_range):
         return 3
+    elif is_in_range(color, four_range):
+        return 4
+    elif is_in_range(color, five_range):
+        return 5
     else:
-        raise Exception(f"Unknown square {color}")
+        return "?"
+        #raise Exception(f"Unknown square {color}")
 
 
 def is_in_range(color, color_range):
