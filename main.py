@@ -99,14 +99,14 @@ def read_board(x_centers, y_centers, image):
 
 def get_color_category(color):
     # Define color ranges for categories
-    cover_range = ((90, 180, 240), (130, 220, 255))
+    cover_range = ((90, 180, 240), (150, 240, 255))
     blank_range = ((240, 240, 240), (255, 255, 255))
-    one_range = ((10, 140, 170), (30, 190, 230))
-    two_range = ((70, 100, 0), (110, 150, 40))
-    three_range = ((120, 10, 50), (190, 40, 90))
-    four_range = ((10, 40, 110), (30, 80, 170))
-    five_range = ((90, 5, 5), (160, 30, 30))
-    six_range = ((0, 90, 90), (10, 110, 110))
+    one_range = ((10, 140, 170), (40, 190, 230))
+    two_range = ((70, 100, 0), (140, 180, 40))
+    three_range = ((120, 10, 50), (220, 60, 130))
+    four_range = ((11, 40, 110), (40, 90, 180))
+    five_range = ((90, 5, 5), (180, 50, 40))
+    six_range = ((0, 91, 90), (10, 120, 109))
 
     # Check the color against predefined ranges
     if is_in_range(color, cover_range):
@@ -139,20 +139,41 @@ def start_ai(x_grid, y_grid, board_state):
     rows = len(y_grid)
 
     # Modify the board state to show mines and free squares
-    swept_board = run_ai(rows, cols, board_state)
+    simple_check(rows, cols, board_state)
+    
+    to_click = False
+    for row in board_state:
+        if "s" in row:
+            to_click = True
+            break
+    print("going")
+    if not to_click:
+        print("advanced engaged!")
+        advanced_check(rows, cols, board_state)
 
+    clicked = False
+    
     # Display the free spaces and the mines
     for row in range(rows):
         for col in range(cols):
-            if swept_board[row][col] == "s":  
+            if board_state[row][col] == "s":  
                 # The square is not a mine
                 pyautogui.moveTo(x_grid[col], y_grid[row])
                 pyautogui.click()
-            elif swept_board[row][col] == "m":  # The square is a mine
+                clicked = True
+                
+            elif board_state[row][col] == "m":  # The square is a mine
                 # The square is a mine
                 pass
+            
+    if not clicked:
+        raise Exception("Help me Step Bro! I'm stuck!")
+        
 
-def run_ai(rows, cols, board_state):
+class InvalidBoardState(Exception):
+    pass
+
+def simple_check(rows, cols, board_state):
     changed = False  # Record if any values in the array were changed
     for row in range(rows):
         for col in range(cols):
@@ -171,6 +192,9 @@ def run_ai(rows, cols, board_state):
                                 mine_num += 1
                                 pot_mine_num += 1
 
+                if pot_mine_num < board_state[row][col] or mine_num > board_state[row][col]:
+                    raise InvalidBoardState(board_state)
+                
                 # Check if the square's value is the same as the total potential mines or the total known mines
                 if pot_mine_num == board_state[row][col] or mine_num == board_state[row][col]:
                     # Find all unknown squares around the square and change them accordingly
@@ -186,9 +210,35 @@ def run_ai(rows, cols, board_state):
                                     board_state[row + i][col + j] = "s"
                                 changed = True  # Record that the board state changed
     if changed:  # If the board state changed run this check again
-        return run_ai(rows, cols, board_state)
+        return simple_check(rows, cols, board_state)
     return board_state
 
+def advanced_check(rows, cols, board_state):
+    for row in range(rows):
+        for col in range(cols):
+            if board_state[row][col] == "c":
+                m_board = [row[:] for row in board_state]
+                
+                m_board[row][col] = "m"
+                try:
+                    simple_check(rows, cols, m_board)
+                except InvalidBoardState:
+                    board_state[row][col] = "s"
+                    continue
+                
+                s_board = [row[:] for row in board_state]
+                s_board[row][col] = "s"
+                try:
+                    simple_check(rows, cols, s_board)
+                except InvalidBoardState:
+                    board_state[row][col] = "m"
+                    continue
+                
+    simple_check(rows, cols, board_state)
+
+
+
+                
 
     
 def main():
