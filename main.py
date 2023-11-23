@@ -101,9 +101,10 @@ def get_color_category(color):
     # Define color ranges for categories
     cover_range = ((90, 180, 240), (150, 240, 255))
     blank_range = ((240, 240, 240), (255, 255, 255))
+    empty_range = ((20, 20, 30), (60, 60, 90))
     one_range = ((10, 140, 170), (40, 190, 230))
-    two_range = ((70, 100, 0), (140, 180, 40))
-    three_range = ((120, 10, 50), (220, 60, 130))
+    two_range = ((70, 90, 0), (140, 180, 40))
+    three_range = ((120, 10, 50), (220, 70, 130))
     four_range = ((11, 40, 110), (40, 90, 180))
     five_range = ((90, 5, 5), (180, 50, 40))
     six_range = ((0, 91, 90), (10, 120, 109))
@@ -113,6 +114,8 @@ def get_color_category(color):
         return 'c'
     elif is_in_range(color, blank_range):
         return "b"
+    elif is_in_range(color, empty_range):
+        return "e"
     elif is_in_range(color, one_range):
         return 1
     elif is_in_range(color, two_range):
@@ -146,9 +149,8 @@ def start_ai(x_grid, y_grid, board_state):
         if "s" in row:
             to_click = True
             break
-    print("going")
+    
     if not to_click:
-        print("advanced engaged!")
         advanced_check(rows, cols, board_state)
 
     clicked = False
@@ -251,7 +253,9 @@ def main():
     # Find the grid location
     x_grid, y_grid = find_grid_location(screen)
 
-    pyautogui.moveTo(x_grid[(int)(len(x_grid)/2)], y_grid[(int)(len(y_grid)/2)])
+    mid_x, mid_y = (int)(len(x_grid)/2), (int)(len(y_grid)/2)
+    
+    pyautogui.moveTo(x_grid[mid_x], y_grid[mid_y])
     pyautogui.click()
     pyautogui.click()
     
