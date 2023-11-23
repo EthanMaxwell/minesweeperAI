@@ -5,8 +5,8 @@ import time
 
 def find_grid_location(image):
     # Define the lower and upper bounds for the blue color
-    lower_blue = np.array([100, 148, 246])
-    upper_blue = np.array([107, 160, 255])
+    lower_blue = np.array([56, 142, 245])
+    upper_blue = np.array([103, 198, 255])
 
     # Create a binary mask for the blue color
     mask = cv2.inRange(image, lower_blue, upper_blue)
@@ -19,7 +19,7 @@ def find_grid_location(image):
 
     if len(contours) > 0:
         # Calculate the median contour
-        median_contour = sorted(contours, key=cv2.contourArea)[-50]
+        median_contour = sorted(contours, key=cv2.contourArea)[-10]
 
         for contour in contours:
             # Calculate the absolute difference in area and shape between the current contour and the median contour
@@ -101,7 +101,7 @@ def get_color_category(color):
     # Define color ranges for categories
     cover_range = ((90, 180, 240), (150, 240, 255))
     blank_range = ((240, 240, 240), (255, 255, 255))
-    empty_range = ((20, 20, 30), (60, 60, 90))
+    empty_range = ((20, 20, 20), (60, 60, 90))
     one_range = ((10, 140, 170), (40, 190, 230))
     two_range = ((70, 90, 0), (140, 180, 40))
     three_range = ((120, 10, 50), (220, 70, 130))
@@ -129,7 +129,7 @@ def get_color_category(color):
     elif is_in_range(color, six_range):
         return 6
     else:
-        #return "?"
+        # return "?"
         raise Exception(f"Unknown square {color}")
 
 
@@ -160,8 +160,7 @@ def start_ai(x_grid, y_grid, board_state):
         for col in range(cols):
             if board_state[row][col] == "s":  
                 # The square is not a mine
-                pyautogui.moveTo(x_grid[col], y_grid[row])
-                pyautogui.click()
+                pyautogui.click(x_grid[col], y_grid[row])
                 clicked = True
                 
             elif board_state[row][col] == "m":  # The square is a mine
@@ -237,27 +236,33 @@ def advanced_check(rows, cols, board_state):
                     continue
                 
     simple_check(rows, cols, board_state)
-
-
-
-                
-
     
 def main():
     # Capture the screen using pyautogui
     screen = np.array(pyautogui.screenshot())
 
-    # Convert the image from BGR to RGB (OpenCV uses BGR)
-    screen = cv2.cvtColor(screen, cv2.COLOR_RGB2HSV)
-
     # Find the grid location
     x_grid, y_grid = find_grid_location(screen)
-
     mid_x, mid_y = (int)(len(x_grid)/2), (int)(len(y_grid)/2)
+    board = read_board(x_grid, y_grid, screen)
     
-    pyautogui.moveTo(x_grid[mid_x], y_grid[mid_y])
-    pyautogui.click()
-    pyautogui.click()
+    # Click window to ensure it is focused
+    pyautogui.click(x_grid[mid_x], y_grid[mid_y])
+    time.sleep(0.01)
+    
+    if board[mid_y][mid_x] == "c":
+        pyautogui.click()
+    elif board[mid_y][mid_x] == "e":
+        clicked = False
+        for row in range(len(y_grid)):
+            for col in range(len(x_grid)):
+                if board[row][col] == "b":
+                      pyautogui.click(x_grid[col], y_grid[row])
+                      pyautogui.click(x_grid[col], y_grid[row])
+                      clicked = True
+                      
+        if not clicked:
+            pyautogui.click(x_grid[(int)(len(x_grid)/4)], y_grid[mid_y])
     
     while True:
         pyautogui.moveTo((x_grid[-1] - x_grid[-2]) + x_grid[-1] , y_grid[0])
