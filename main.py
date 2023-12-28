@@ -4,30 +4,41 @@ import pyautogui
 import time
 
 def find_grid_location(image):
+        
     # Define the lower and upper bounds for the blue color
     lower_blue = np.array([56, 142, 245])
     upper_blue = np.array([103, 198, 255])
 
-    # Create a binary mask for the blue color
-    mask = cv2.inRange(image, lower_blue, upper_blue)
+    # Define the lower and upper bounds for the white color
+    lower_white = np.array([140, 140, 140])
+    upper_white = np.array([200, 200, 200])
 
-    # Find contours in the binary mask
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Create binary masks for both blue and white colors
+    blue_mask = cv2.inRange(image, lower_blue, upper_blue)
+    white_mask = cv2.inRange(image, lower_white, upper_white)
 
+    # Combine the binary masks
+    combined_mask = cv2.bitwise_or(blue_mask, white_mask)
+
+    # Find contours in the combined binary mask
+    contours, _ = cv2.findContours(combined_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
     # Filter out erroneous contours based on shape and area compared to the median contour
     valid_contours = []
-
+    
+    colour_sensitivity = 1.2
+    
     if len(contours) > 0:
         # Calculate the median contour
         median_contour = sorted(contours, key=cv2.contourArea)[-10]
 
         for contour in contours:
             # Calculate the absolute difference in area and shape between the current contour and the median contour
-            area_difference = abs(cv2.contourArea(contour) - cv2.contourArea(median_contour))
+            area_difference = cv2.contourArea(contour) / cv2.contourArea(median_contour)
             shape_difference = cv2.matchShapes(median_contour, contour, cv2.CONTOURS_MATCH_I2, 0)
 
             # Adjust these thresholds based on your specific case
-            if area_difference < 20 or shape_difference < 1:
+            if area_difference < colour_sensitivity and area_difference > 1/colour_sensitivity and shape_difference < 2:
                 valid_contours.append(contour)
 
     # Sort valid contours by their x-coordinate
@@ -102,7 +113,7 @@ def get_color_category(color):
     cover_range = ((90, 180, 240), (150, 240, 255))
     blank_range = ((240, 240, 240), (255, 255, 255))
     empty_range = ((20, 20, 20), (60, 60, 90))
-    one_range = ((10, 140, 170), (40, 190, 230))
+    one_range = ((5, 130, 155), (40, 190, 230))
     two_range = ((70, 90, 0), (140, 180, 40))
     three_range = ((120, 10, 50), (220, 70, 130))
     four_range = ((11, 40, 110), (40, 90, 180))
@@ -129,7 +140,7 @@ def get_color_category(color):
     elif is_in_range(color, six_range):
         return 6
     else:
-        # return "?"
+        #return "?"
         raise Exception(f"Unknown square {color}")
 
 
