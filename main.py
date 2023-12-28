@@ -110,11 +110,11 @@ def read_board(x_centers, y_centers, image):
 
 def get_color_category(color):
     # Define color ranges for categories
-    cover_range = ((90, 180, 240), (150, 240, 255))
+    cover_range = ((90, 180, 230), (150, 240, 255))
     blank_range = ((240, 240, 240), (255, 255, 255))
     empty_range = ((20, 20, 20), (60, 60, 90))
     one_range = ((5, 130, 155), (40, 190, 230))
-    two_range = ((70, 90, 0), (140, 180, 40))
+    two_range = ((70, 90, 0), (140, 180, 45))
     three_range = ((120, 10, 50), (220, 70, 130))
     four_range = ((11, 40, 110), (40, 90, 180))
     five_range = ((90, 5, 5), (180, 50, 40))
