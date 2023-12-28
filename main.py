@@ -114,7 +114,7 @@ def get_color_category(color):
     blank_range = ((240, 240, 240), (255, 255, 255))
     empty_range = ((20, 20, 20), (60, 60, 90))
     one_range = ((5, 130, 155), (40, 190, 230))
-    two_range = ((70, 90, 0), (140, 180, 45))
+    two_range = ((70, 90, 0), (140, 180, 55))
     three_range = ((120, 10, 50), (220, 70, 130))
     four_range = ((11, 40, 110), (40, 90, 180))
     five_range = ((90, 5, 5), (180, 50, 40))
@@ -261,18 +261,29 @@ def main():
     pyautogui.click(x_grid[mid_x], y_grid[mid_y])
     time.sleep(0.01)
     
+
     if board[mid_y][mid_x] == "c":
+        # Click middle of board if not in challenge
         pyautogui.click()
     elif board[mid_y][mid_x] == "e":
-        clicked = False
+        # Click empty squares if in challenge
+        empty = False
         for row in range(len(y_grid)):
             for col in range(len(x_grid)):
                 if board[row][col] == "b":
-                      pyautogui.click(x_grid[col], y_grid[row])
-                      pyautogui.click(x_grid[col], y_grid[row])
-                      clicked = True
-                      
-        if not clicked:
+                    empty = True
+                    for i in range(-1, 2):
+                        for j in range(-1, 2):
+                            if (
+                                0 <= row + i < len(y_grid) and 0 <= col + j < len(x_grid)
+                                and board[row + i][col + j] == 'c'
+                            ):
+                                pyautogui.click(x_grid[col], y_grid[row])
+                                pyautogui.click(x_grid[col], y_grid[row])
+
+        
+        # If no empty squares pick a starting square
+        if not empty:
             pyautogui.click(x_grid[(int)(len(x_grid)/4)], y_grid[mid_y])
     
     while True:
